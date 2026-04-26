@@ -1,3 +1,4 @@
+# app.py (Frontend)
 import streamlit as st
 import requests
 import os
@@ -105,6 +106,29 @@ else:
     )
 
     st.markdown("---")
+
+    # ── Auto-Trigger Onboarding ────────────────────────────────────
+    
+    if len(st.session_state.messages) == 0 and st.session_state.session_mode == "onboarding":
+        with st.spinner("Initializing Cogniva Profile..."):
+            try:
+                res = requests.post(
+                    API_URL,
+                    json={
+                        "student_id": st.session_state.student_id,
+                        "message": "Hello, I am a new student. Please start my onboarding.",
+                        "session_mode": "onboarding"
+                    },
+                    timeout=30
+                )
+                res.raise_for_status()
+                data = res.json()
+                st.session_state.messages.append({
+                    "role": "assistant",
+                    "content": data.get("reply", "Let's begin.")
+                })
+            except Exception:
+                st.error("Failed to connect to backend to start onboarding.")
 
     # ── Chat History ───────────────────────────────────────────────
 
